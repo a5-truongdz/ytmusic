@@ -1,0 +1,37 @@
+<node>
+  <interface name="org.mpris.MediaPlayer2">
+    <method name="Raise"/>
+    <method name="Quit"/>
+    <property name="CanQuit" type="b" access="read"/>
+    <property name="CanRaise" type="b" access="read"/>
+    <property name="HasTrackList" type="b" access="read"/>
+    <property name="Identity" type="s" access="read"/>
+    <property name="SupportedUriSchemes" type="as" access="read"/>
+    <property name="SupportedMimeTypes" type="as" access="read"/>
+  </interface>
+  <interface name="org.mpris.MediaPlayer2.Player">
+    <property name="PlaybackStatus" type="s" access="read"/>
+    <property name="Metadata" type="a{sv}" access="read"/>
+  </interface>
+  <interface name="org.freedesktop.DBus.Properties">
+    <method name="Get">
+      <arg direction="in" type="s" name="interface"/>
+      <arg direction="in" type="s" name="property"/>
+      <arg direction="out" type="v" name="value"/>
+    </method>
+    <method name="GetAll">
+      <arg direction="in" type="s" name="interface"/>
+      <arg direction="out" type="a{sv}" name="props"/>
+    </method>
+    <method name="Set">
+      <arg direction="in" type="s" name="interface"/>
+      <arg direction="in" type="s" name="property"/>
+      <arg direction="in" type="v" name="value"/>
+    </method>
+    <signal name="PropertiesChanged">
+      <arg type="s" name="interface"/>
+      <arg type="a{sv}" name="changed"/>
+      <arg type="as" name="invalidated"/>
+    </signal>
+  </interface>
+</node>

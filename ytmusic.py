@@ -5,6 +5,7 @@ import subprocess
 import os
 import sys
 from typing import *
+import readchar
 colorama.init(autoreset=True)
 
 yt = ytmusicapi.YTMusic()
@@ -16,11 +17,11 @@ def clearTerminal() -> None:
         os.system("clear")
 
 def playVideoId(videoId: str) -> None:
-    ytDlp = subprocess.Popen(
+    ytDlp: subprocess.Popen = subprocess.Popen(
         ["yt-dlp", "-f", "bestaudio", "--remote-components", "ejs:github", "-o", "-", f"https://www.youtube.com/watch?v={videoId}"],
         stdout=subprocess.PIPE
     )
-    ffplay = subprocess.Popen(
+    ffplay: subprocess.Popen = subprocess.Popen(
         ["ffplay", "-vn", "-nodisp", "-autoexit", "-i", "-"],
         stdin=ytDlp.stdout,
         stdout=subprocess.DEVNULL,
@@ -58,16 +59,17 @@ def main() -> None:
             clearTerminal()
             results: list[dict[str, Any]] = yt.search(query=query, filter="songs", limit=5)
             for i, result in enumerate(results, 1):
-                videoId = result["videoId"]
-                title = result["title"]
-                artists = ", ".join([artist["name"] for artist in result["artists"]])
-                album = result["album"]["name"] if result["album"]["name"] != title else "Single"
+                videoId: str = result["videoId"]
+                title: str = result["title"]
+                artists: str = ", ".join([artist["name"] for artist in result["artists"]])
+                album: str = result["album"]["name"] if result["album"]["name"] != title else "Single"
                 print(f"{colorama.Style.BRIGHT}{colorama.Fore.CYAN}{i}.{colorama.Style.RESET_ALL} {videoId}{colorama.Style.BRIGHT}:{colorama.Style.RESET_ALL}")
                 print(f"Title: {colorama.Style.BRIGHT}{title}{colorama.Style.RESET_ALL}")
                 print(f"Artists: {colorama.Style.BRIGHT}{artists}{colorama.Style.RESET_ALL}")
                 print(f"Album: {colorama.Style.BRIGHT}{album}{colorama.Style.RESET_ALL}")
                 print()
-            input("Press any key to continue...")
+            print("Press any key to continue...", end="", flush=True)
+            readchar.readkey()
         if choice == 2:
             print(infoMessage("Enter a video ID:"))
             while True:
@@ -80,7 +82,8 @@ def main() -> None:
             clearTerminal()
             print(infoMessage(f"Playing {metadata["videoDetails"]["title"]} by {metadata["videoDetails"]["author"]}!"))
             playVideoId(videoId)
-            input("Press any key to continue...")
+            print("Press any key to continue...", end="", flush=True)
+            readchar.readkey()
         if choice == 3:
             print(infoMessage("Enter a video ID:"))
             while True:
@@ -100,13 +103,19 @@ def main() -> None:
             else:
                 print(infoMessage(f"Lyrics of {metadata["videoDetails"]["title"]} by {metadata["videoDetails"]["author"]}:"))
                 print()
-                print(lyrics["lyrics"])
+                print(f"{colorama.Style.BRIGHT}{lyrics["lyrics"]}{colorama.Style.RESET_ALL}")
             print()
-            input("Press any key to continue...")
+            print("Press any key to continue...", end="", flush=True)
+            readchar.readkey()
         if choice == 4:
             clearTerminal()
             print(infoMessage("Bye!"))
-            exit(0)
+            break
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        clearTerminal()
+        print(infoMessage("Ctrl-C detected. Bye!"))
+        exit(1)

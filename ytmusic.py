@@ -1,3 +1,4 @@
+# thats a huge amount of packages for a music player ngl
 import ytmusicapi
 import colorama
 import art
@@ -6,17 +7,26 @@ import os
 import sys
 from typing import *
 import readchar
-colorama.init(autoreset=True)
+import shutil
+import distro
+
+# windows
+if os.name == "nt":
+    colorama.init(autoreset=True)
 
 yt = ytmusicapi.YTMusic()
 
 def clearTerminal() -> None:
     if os.name == "nt":
+        # windows
         os.system("cls");
     else:
+        # unix
         os.system("clear")
 
 def playVideoId(videoId: str) -> None:
+    # use yt-dlp to stream audio to stdout
+    # then pipe it to ffplay stdin to play
     ytDlp: subprocess.Popen = subprocess.Popen(
         ["yt-dlp", "-f", "bestaudio", "--remote-components", "ejs:github", "-o", "-", f"https://www.youtube.com/watch?v={videoId}"],
         stdout=subprocess.PIPE
@@ -30,9 +40,11 @@ def playVideoId(videoId: str) -> None:
     ffplay.wait()
 
 def errorMessage(message: str) -> str:
+    # [!]
     return(f"{colorama.Style.BRIGHT}{colorama.Fore.RED}[!]{colorama.Style.RESET_ALL} {message}")
 
 def infoMessage(message: str) -> str:
+    # [*]
     return(f"{colorama.Style.BRIGHT}{colorama.Fore.CYAN}[*]{colorama.Style.RESET_ALL} {message}")
 
 def main() -> None:
@@ -54,6 +66,13 @@ def main() -> None:
                 continue
             break
         if choice == 1:
+            """
+            i. videoId:
+            Title: title
+            Artists: artist1, artist2, ...
+            Album: album
+
+            """
             print(infoMessage("Enter a search query:"))
             query: str = input(f"{colorama.Style.BRIGHT}{colorama.Fore.CYAN}>>>{colorama.Style.RESET_ALL} ")
             clearTerminal()
@@ -71,6 +90,7 @@ def main() -> None:
             print("Press any key to continue...", end="", flush=True)
             readchar.readkey()
         if choice == 2:
+            # get videoid from search, duh
             print(infoMessage("Enter a video ID:"))
             while True:
                 videoId: str = input(f"{colorama.Style.BRIGHT}{colorama.Fore.CYAN}>>>{colorama.Style.RESET_ALL} ")
@@ -94,9 +114,11 @@ def main() -> None:
                     continue 
                 break
             clearTerminal()
-            lyricsId: dict[str, list[dict[str, Any]] | str | None] = yt.get_watch_playlist(videoId=videoId)["lyrics"]
+            # get browseid from watch playlist (idk why yt put it there)
+            browseId: dict[str, list[dict[str, Any]] | str | None] = yt.get_watch_playlist(videoId=videoId)["lyrics"]
             try:
-                lyrics: ytmusicapi.models.lyrics.Lyrics | ytmusicapi.models.lyrics.TimedLyrics | None = yt.get_lyrics(browseId=lyricsId)
+                # pass it to get_lyrics
+                lyrics: ytmusicapi.models.lyrics.Lyrics | ytmusicapi.models.lyrics.TimedLyrics | None = yt.get_lyrics(browseId=browseId)
             except ytmusicapi.exceptions.YTMusicUserError:
                 print(infoMessage(f"{metadata["videoDetails"]["title"]} by {metadata["videoDetails"]["author"]} doesn't have lyrics."))
                 print(infoMessage(f"Or Youtube hasn't update it yet."))
@@ -113,6 +135,67 @@ def main() -> None:
             break
 
 if __name__ == "__main__":
+    try:
+        # arch linux support
+        # im too lazy for other distros
+        if not shutil.which("yt-dlp"):
+            print(errorMessage("yt-dlp is not installed. It is required to download music."))
+            if distro.id() == "arch":
+                print(infoMessage("Arch Linux detected. Do you want to install it automatically? [y/N]"))
+                while True:
+                    choice: str = input(f"{colorama.Style.BRIGHT}{colorama.Fore.CYAN}>>>{colorama.Style.RESET_ALL} ").lower()
+                    if not choice or not choice in ["y", "n"]:
+                        continue
+                    if choice == "n":
+                        print(errorMessage("Please install yt-dlp and run this again."))
+                        exit(1)
+                    if choice == "y":
+                        if subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "yt-dlp"]).returncode != 0:
+                            print(errorMessage("An error occurred. Please try again."))
+                            exit(1)
+                        break
+            else:
+                exit(1)
+        if not shutil.which("ffplay"):
+            print(errorMessage("ffmpeg is not installed. It is required to download music."))
+            if distro.id() == "arch":
+                print(infoMessage("Arch Linux detected. Do you want to install it automatically? [y/N]"))
+                while True:
+                    choice: str = input(f"{colorama.Style.BRIGHT}{colorama.Fore.CYAN}>>>{colorama.Style.RESET_ALL} ").lower()
+                    if not choice or not choice in ["y", "n"]:
+                        continue
+                    if choice == "n":
+                        print(errorMessage("Please install ffmpeg and run this again."))
+                        exit(1)
+                    if choice == "y":
+                        if subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "ffmpeg"]).returncode != 0:
+                            print(errorMessage("An error occurred. Please try again."))
+                            exit(1)
+                        break
+            else:
+                exit(1)
+        if not shutil.which("deno"):
+            print(errorMessage("deno is not installed. It is required to download music."))
+            if distro.id() == "arch":
+                print(infoMessage("Arch Linux detected. Do you want to install it automatically? [y/N]"))
+                while True:
+                    choice: str = input(f"{colorama.Style.BRIGHT}{colorama.Fore.CYAN}>>>{colorama.Style.RESET_ALL} ").lower()
+                    if not choice or not choice in ["y", "n"]:
+                        continue
+                    if choice == "n":
+                        print(errorMessage("Please install deno and run this again."))
+                        exit(1)
+                    if choice == "y":
+                        if subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "deno"]).returncode != 0:
+                            print(errorMessage("An error occurred. Please try again."))
+                            exit(1)
+                        break
+            else:
+                exit(1)
+    except KeyboardInterrupt:
+        clearTerminal()
+        print(infoMessage("Ctrl-C detected. Bye!"))
+        exit(1)
     try:
         main()
     except KeyboardInterrupt:
